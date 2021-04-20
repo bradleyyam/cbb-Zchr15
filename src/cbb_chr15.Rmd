@@ -1,0 +1,55 @@
+---
+title: "cbb-chr15"
+author: "bradley"
+date: "4/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(vcfR)
+
+getLast <- function(x){
+  len <- length(x)
+  return (x[len])
+}
+
+getGene <- function(x){
+  return (x[5])
+}
+```
+
+## CBB Final Project
+
+
+```{r}
+vcf <- read.vcfR("../data/Z.variantCall.SNPs.vcf", verbose = FALSE )
+
+filter15 <- vcf@fix[vcf@fix[,1] == "15",]
+filter15Pass <- filter15[filter15[,7] == "PASS",]
+
+filter15G <- vcf@gt[vcf@fix[,1] == "15",]
+
+vcf@fix <- filter15Pass
+vcf@gt <- filter15G
+
+write.vcf(vcf, "../out/Z.filter15.SNPs.vcf")
+```
+
+## Pass to VEP Annotator: 
+
+Job Link: http://grch37.ensembl.org/Homo_sapiens/Tools/VEP/Results?from=1;size=50;tl=RPwvCHag6FBO2JRv-7238794;to=50
+
+```{r}
+#vcfAnn <- read.vcfR("../data/RPwvCHag6FBO2JRv.vcf_", verbose = FALSE )
+#rawAnn <- strsplit(vcfAnn@fix[,8], split = ";")
+#rawAnnLast <- unlist(lapply(rawAnn, getLast))
+#rawAnnList <- strsplit(rawAnnLast, split = "\\|")
+#geneList <- unlist(lapply(rawAnn, getGene))
+
+df = read.delim("../data/RPwvCHag6FBO2JRv.txt", header = TRUE, stringsAsFactors = FALSE, quote = "")
+sort(table(df$Gene), decreasing = TRUE)[2:11]
+```
+
+
