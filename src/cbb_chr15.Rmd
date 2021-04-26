@@ -8,8 +8,10 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+#This is the library that's going to help us ingest and comprehend VCF files
 library(vcfR)
 
+#Some helper functions to apply over lists
 getLast <- function(x){
   len <- length(x)
   return (x[len])
@@ -24,16 +26,23 @@ getGene <- function(x){
 
 
 ```{r}
+#THIS SECTION IS TO PREP A NEW VCF FILE OF Z's SNP ON THE 15th CHROMOSOME
+
+#Read in the VCF file for all of Z's SNPs. The assignment tells us to focus on Z's point mutations but conceivably this same approach could be done for the VCFs over indels and SVs as well.
 vcf <- read.vcfR("../data/Z.variantCall.SNPs.vcf", verbose = FALSE )
 
+#We are filtering here for the 15th Chromosome and the the quality of each read. I'm happy to see that all of the reads are given a filter status of "PASS"
 filter15 <- vcf@fix[vcf@fix[,1] == "15",]
 filter15Pass <- filter15[filter15[,7] == "PASS",]
 
+#We want to pull out the genotype information for the 15th chromosome as well.
 filter15G <- vcf@gt[vcf@fix[,1] == "15",]
 
+#And we want to rewrite it to the original vcf object for writing out to a file.
 vcf@fix <- filter15Pass
 vcf@gt <- filter15G
 
+#Prep the file for annotation
 write.vcf(vcf, "../out/Z.filter15.SNPs.vcf")
 ```
 
@@ -42,13 +51,17 @@ write.vcf(vcf, "../out/Z.filter15.SNPs.vcf")
 Job Link: http://grch37.ensembl.org/Homo_sapiens/Tools/VEP/Results?from=1;size=50;tl=RPwvCHag6FBO2JRv-7238794;to=50
 
 ```{r}
+#SOME CODE TO READ IN VCF OUTPUT FROM VEP
 #vcfAnn <- read.vcfR("../data/RPwvCHag6FBO2JRv.vcf_", verbose = FALSE )
 #rawAnn <- strsplit(vcfAnn@fix[,8], split = ";")
 #rawAnnLast <- unlist(lapply(rawAnn, getLast))
 #rawAnnList <- strsplit(rawAnnLast, split = "\\|")
 #geneList <- unlist(lapply(rawAnn, getGene))
 
+#CODE TO READ IN TXT OUTPUT FROM VEP which gives us an annotated version of the uploaded file with all gene names
 df = read.delim("../data/RPwvCHag6FBO2JRv.txt", header = TRUE, stringsAsFactors = FALSE, quote = "")
+
+#Find all gene names and compile a table of them and find the top 10. The first one is omitted because it is blank.
 sort(table(df$Gene), decreasing = TRUE)[2:11]
 ```
 
