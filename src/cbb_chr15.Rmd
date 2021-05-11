@@ -52,7 +52,7 @@ Job Link: http://grch37.ensembl.org/Homo_sapiens/Tools/VEP/Results?from=1;size=5
 
 ```{r}
 #SOME CODE TO READ IN VCF OUTPUT FROM VEP
-#vcfAnn <- read.vcfR("../data/RPwvCHag6FBO2JRv.vcf_", verbose = FALSE )
+vcfAnn <- read.vcfR("../data/RPwvCHag6FBO2JRv.vcf", verbose = TRUE )
 #rawAnn <- strsplit(vcfAnn@fix[,8], split = ";")
 #rawAnnLast <- unlist(lapply(rawAnn, getLast))
 #rawAnnList <- strsplit(rawAnnLast, split = "\\|")
@@ -62,7 +62,24 @@ Job Link: http://grch37.ensembl.org/Homo_sapiens/Tools/VEP/Results?from=1;size=5
 df = read.delim("../data/RPwvCHag6FBO2JRv.txt", header = TRUE, stringsAsFactors = FALSE, quote = "")
 
 #Find all gene names and compile a table of them and find the top 10. The first one is omitted because it is blank.
-sort(table(df$Gene), decreasing = TRUE)[2:11]
+top10tab <- sort(table(df$Gene), decreasing = TRUE)[2:11]
+top10 <- names(top10tab)
+
+#compile serach terms
+search_terms <- paste(top10, collapse = "|")
+
+#check if rows match
+nrow(vcfAnn@fix)
+nrow(vcf@fix)
+
+vcfAnn@fix[1:100,8]
+selected_idx <- grepl(search_terms, vcfAnn@fix[,8])
+
+#rewrite them into the same file
+vcfAnn@fix <- vcfAnn@fix[selected_idx,]
+vcfAnn@gt <- vcfAnn@gt[selected_idx,]
+
+write.vcf(vcfAnn, "../out/Z.top10mutationalburden.SNPs.vcf")
 ```
 
 
